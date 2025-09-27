@@ -1,0 +1,123 @@
+<div id="playerLocation"></div>
+<div id="story"></div>
+<div id="choices"></div>
+
+<script>
+// Player & Enemy (in script.js)
+let player = {
+    maxHP: 20,
+    hp: 20,
+  attack: 5,
+    location: ""
+};
+
+
+let villageNPC = {
+ healerVillager: {
+     type: "villager",
+    dialog: ["Want to heal?",
+            "You are completely healed!",
+            "You are fine, no need to heal"],
+     playerHeal: player.maxHP
+},
+};
+let forestNPC = {
+ enemyForest: {
+     type: "enemy",
+  hp: 10,
+  attack: 3
+}
+    };
+
+let gameLocation = {
+    village: {
+    location: "Village",
+    description: "You are in the Village",
+    gameCharacters: [villageNPC.healerVillager],
+    exit: ["deepForest"]
+},
+    deepForest: {
+        location: "Deep Forest",
+        description: "You are in the Deep Forest",
+        gameCharacters: [forestNPC.enemyForest],
+        exit: ["village"]
+},
+};
+
+
+// Utility Functions
+function showLocation(loctext){
+    document.getElementById("playerLocation").innerText = loctext;
+}
+function showStory(text) {
+  document.getElementById("story").innerText = text;
+}
+
+function showChoices(options) {
+  let choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = ""; // clear old buttons
+  options.forEach(opt => {
+    let btn = document.createElement("button");
+    btn.innerText = opt.text;
+    btn.onclick = opt.action;
+    choicesDiv.appendChild(btn);
+  });
+}
+
+//Game Start
+function gotoVillage() {
+    player.location = gameLocation.village;
+   showLocation(`${gameLocation.village.description}`);
+  showStory("What do you want to do?");
+  showChoices([
+    { text: "Talk to Healer", action: talktoHealer },
+    { text: "Go to Deep Forest", action: gotoDeepForest }
+  ]);
+}
+
+function talktoHealer() {
+    showStory(`Healer: ${villageNPC.healerVillager.dialog[0]}`);
+    showChoices([
+    {text: "Heal", action: healPlayer},
+    {text: "None", action: gotoVillage}
+        ]);
+}
+function gotoDeepForest(){
+    player.location = gameLocation.deepForest;
+    showLocation(`${gameLocation.deepForest.description}`);
+    showStory("What do you want to do?");
+    showChoices([
+        {text: "Fight Enemy", action: fightEnemy},
+        {text: "Go to Village", action: gotoVillage}
+    ]);
+}
+function healPlayer(){
+    if(player.hp != player.maxHP){
+        player.hp = player.maxHP;
+        showStory(`${villageNPC.healerVillager.dialog[1]}`);
+        showChoices ([
+            {text: "Thank you", action: gotoVillage}
+        ]);
+    } else {
+        showStory(`${villageNPC.healerVillager.dialog[2]}`);
+        showChoices ([
+            {text: "Okay", action: gotoVillage}
+        ]);
+    }
+}
+function fightEnemy(){
+    player.location = gameLocation.deepForest;
+    showLocation(`${gameLocation.deepForest.description}`);
+    showStory("(in progress)");
+    showChoices([
+        {text: "Go Back", action: gotoDeepForest},
+        {text: "Go to Village", action: gotoVillage}
+    ]);
+}
+
+// Kick Off Game
+function startGame(){
+    gotoVillage();
+}
+    startGame();
+</script>
