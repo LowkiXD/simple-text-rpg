@@ -1,0 +1,243 @@
+<div id="playerStats"></div>
+<br>
+<hr>
+<div id="playerLocation"></div>
+<div id="story"></div>
+<hr>
+<br>
+<div id="choices"></div>
+
+<script>
+// Player & Enemy (in script.js)
+let player = {
+    maxHP: 20,
+    hp: 20,
+   power: Math.floor(Math.random()*4),
+    defense: 1,
+    money: 0,
+    skill: [],
+    inventory: [],
+    equipment: [],
+    location: "",
+};
+    
+// Utility Functions
+function showPlayerStats(){
+    document.getElementById("playerStats").innerText = `Health: ${player.hp}/${player.maxHP} | Money: ${player.money}`;
+}
+function updatePlayerStats(changes = {}){
+    Object.assign(player, changes);  // Update player's properties
+    showPlayerStats(); // refresh the visible text stat
+}
+function showLocation(loctext){
+    document.getElementById("playerLocation").innerText = loctext;
+}
+function showStory(text) {
+  document.getElementById("story").innerText = text;
+}
+
+let encountersInDeepForest = [
+ {
+     type: "enemy", name: "slime", message: "A slime appears..." ,
+  hp: 10, power: Math.floor(Math.random()* 4)
+     //how the attack works
+     //Math.random = only does 0 to 1. it does decimals, not whole numbers
+     // with "*4", we can create a random number between 0-4(with decimals) instead of 1, like math.random(treat it like 1) * 4 = 4
+     //math.floor deletes the decimal by rounding it down. so the attack power is 0,1,2,3
+},
+{
+     type: "enemy", name: "snake", message: "A venomous snake appears..." ,
+  hp: 10, power: Math.floor(Math.random()* 4),
+    skill: "venomous bite"
+    
+    },
+    {
+     type: "enemy", name: "spider", message: "A big spider appears..." ,
+  hp: 10, power: Math.floor(Math.random()* 4),
+        skill: "web wrap"
+    },
+    {
+     type: "loot", name: "coinMoney", message: "You found some coins" ,
+  hp: 10, power: Math.floor(Math.random()* 3)+1
+        // Math.floor(Math.random() * (max - min + 1)) + min === this is to make a minimun and maximum variables
+        // Math.floor(Math.random()* (3-2+1)) +1 == 
+        // how this works, first, "3(maximum)-2(minimum)" after this, then "1+1(static variable i guess)"
+        // math.random * 2 creates number generator from 0-2
+        // "2+1(outside the parenthesis)" increases that minimum so that it would not be 0
+        // math.floor brings down the decimals = range is 1-3
+    },
+    {
+     type: "none", name: "none", message: "You found nothing."
+    }
+    ];
+
+
+let gameLocation = {
+    village: {
+    location: "Village",
+    description: "You are in the Village",
+    
+    gameCharacters: {
+        healerVillager: {
+     type: "villager",
+    dialog: ["Want do you want? Heal?",
+            "You are completely healed!",
+            "You are fine, no need to heal"],
+     playerHeal: player.maxHP
+},
+shopVillager: {
+    type: "villager",
+    dialog: [
+        "Welcome! Wanna buy something?" ,
+        "Thank you for buying!",
+        "You have not enough money to buy this",
+        "Goodbye."
+    ],
+    weapons: [
+            {name: "arnis", 
+              price: 10,
+              damage: 3
+              },
+              {name: "knife",
+                price: 20,
+                damage: 5
+              },
+               {name: "shortsword",
+               price: 40,
+               damage: 8
+               },
+               {name: "longsword",
+               price: 80,
+                damage: 12
+               }
+             ],
+    armor: [
+            {name: "helmet",
+            price: 50,
+            defense: 1
+            },
+            {name: "breastplate",
+            price: 50,
+            defense: 1
+            },
+            {name: "gloves",
+            price: 50,
+            defense: 1
+            },
+            {name: "leg guard",
+            price: 50,
+            defense: 1
+            },
+            {name: "boots",
+            price: 50,
+            defense: 1
+            },
+            
+           ],
+    potion: [
+            {name: "potion",
+            price: 10,
+            heal: 5
+            }
+        
+            ]
+}}
+        ,
+    exit: ["deepForest"]
+},
+    deepForest: {
+        location: "Deep Forest",
+        description: "You are in the Deep Forest",
+        gameCharacters: [encountersInDeepForest.enemy],
+        exit: ["village"]
+        
+},
+};
+
+
+
+
+function showChoices(options) {
+  let choicesDiv = document.getElementById("choices"); //creates a var in js which refers the html div tag
+  choicesDiv.innerHTML = ""; // prints nothing on the div, but will be used once the buttons are made
+  options.forEach(opt => { //foreach loop
+    let btn = document.createElement("button"); // for each choices made, create a button
+    btn.innerText = opt.text; // text labeled in the button
+    btn.onclick = opt.action; // on click, calls this function/action
+    choicesDiv.appendChild(btn); // add the button in the div
+  })
+};
+
+//Game Start
+function gotoVillage() {
+    player.location = gameLocation.village;
+   showLocation(`${gameLocation.village.description}`);
+  showStory("What do you want to do?");
+  showChoices([
+    { text: "Talk to Healer", action: talktoHealer },
+    { text: "Go to Deep Forest", action: gotoDeepForest }
+  ]);
+}
+
+function talktoHealer() {
+    showStory(`Healer: ${gameLocation.village.gameCharacters.healerVillager.dialog[0]}`);
+    showChoices([
+    {text: "Heal", action: healerHealPlayer},
+    {text: "Go back", action: gotoVillage}
+        ]);
+    
+        function healerHealPlayer(){
+    if(player.hp < player.maxHP){
+        updatePlayerStats({hp : player.maxHP});
+        showStory(`${gameLocation.village.gameCharacters.healerVillager.dialog[1]}`);
+        showChoices ([
+            {text: "Thank you", action: talktoHealer}
+        ]);
+    } else {
+        showStory(`${gameLocation.village.gameCharacters.healerVillager.dialog[2]}`);
+        showChoices ([
+            {text: "Okay", action: talktoHealer}
+        ]);
+    }
+}
+}
+
+function gotoDeepForest(){
+    player.location = gameLocation.deepForest;
+    showLocation(`${gameLocation.deepForest.description}`);
+    showStory("What do you want to do?");
+    showChoices([
+        {text: "Search", action: searchDeepForest},
+        {text: "Go to Village", action: gotoVillage}
+    ]);
+    
+    function searchDeepForest() {
+  let encounter = encountersInDeepForest[Math.floor(Math.random() * encountersInDeepForest.length)];
+  showStory(encounter.message);
+  showChoices([{ text: "Continue searching...", action: searchDeepForest },
+               {text: "Stop searching.", action: gotoDeepForest},
+              ]);
+}
+}
+    
+
+function fightEnemy(){
+    player.location = gameLocation.deepForest;
+    showLocation(`${gameLocation.deepForest.description}`);
+    showStory("(in progress)");
+    showChoices([
+        {text: "Fight", action: fightEnemyForest},
+        {text: "Go to Village", action: gotoVillage}
+    ]);
+}
+
+
+// Kick Off Game
+function startGame(){
+    showPlayerStats();
+    gotoVillage();
+}
+    showPlayerStats();
+    window.onload = startGame; //    startGame();
+</script>
+<!--<script src="script.js" defer></script>-->
